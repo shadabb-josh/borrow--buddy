@@ -62,9 +62,9 @@ function LoginForm() {
 
         <p className="text-center text-gray-600 mt-4">
           Don't have an account?{" "}
-          <a href="#" className="text-black hover:underline">
+          <NavLink to="/signup" className="text-black hover:underline">
             Register
-          </a>
+          </NavLink>
         </p>
       </div>
     </div>

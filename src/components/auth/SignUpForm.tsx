@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 
-function signUpForm() {
+export default function SignUpForm() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-6">
       {/* Back Button */}
@@ -12,11 +12,11 @@ function signUpForm() {
 
       {/* Form Container */}
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h4 className="text-2xl text-center text-gray-900">
-          Sign Up for an Account
-        </h4>
+        <h2 className="text-2xl text-center text-gray-900">
+          Create an Account
+        </h2>
         <p className="text-gray-600 text-center mt-2">
-          Create an account to start lending and borrowing.
+          Sign up to start lending and borrowing securely.
         </p>
 
         <form className="mt-6">
@@ -46,11 +46,24 @@ function signUpForm() {
             />
           </div>
 
+          <div className="mb-4">
+            <label htmlFor="confirmPassword" className="block text-gray-700">
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              id="confirmPassword"
+              className="w-full p-3 border rounded-lg focus:ring-black focus:border-black"
+              placeholder="Confirm your password"
+              required
+            />
+          </div>
+
           <button
             type="submit"
             className="w-full mt-4 px-6 py-3 bg-black text-white text-lg rounded-lg shadow-md hover:opacity-90 transition"
           >
-            Sign Up
+            Register
           </button>
         </form>
 
@@ -64,5 +77,3 @@ function signUpForm() {
     </div>
   );
 }
-
-export default signUpForm;
