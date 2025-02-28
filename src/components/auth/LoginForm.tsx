@@ -1,10 +1,14 @@
+import { NavLink } from "react-router-dom";
+
 function LoginForm() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-6">
       {/* Back Button */}
-      <button className="absolute top-6 left-6 px-4 py-2 bg-black text-white rounded-lg shadow-md hover:opacity-90 transition">
-        &larr; Back
-      </button>
+      <NavLink to="/">
+        <button className="absolute top-6 left-6 px-4 py-2 bg-black text-white rounded-lg shadow-md hover:opacity-90 transition">
+          &larr; Back
+        </button>
+      </NavLink>
 
       {/* Form Container */}
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
@@ -43,9 +47,6 @@ function LoginForm() {
           </div>
 
           <div className="flex justify-between items-center mb-4">
-            <label className="flex items-center text-gray-700">
-              <input type="checkbox" className="mr-2" /> Remember me
-            </label>
             <a href="#" className="text-black hover:underline">
               Forgot password?
             </a>
