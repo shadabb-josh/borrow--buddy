@@ -13,9 +13,12 @@ function HeroSection() {
             finance.
           </p>
           <div className="mt-6 space-x-4">
-            <button className="px-6 py-3 bg-white text-indigo-600 rounded-lg hover:bg-gray-200">
-              Get Started
-            </button>
+            <NavLink to="/login">
+              <button className="px-6 py-3 bg-white text-indigo-600 rounded-lg hover:bg-gray-200">
+                Get Started
+              </button>
+            </NavLink>
+
             <NavLink
               className="px-6 py-3 border border-white rounded-lg hover:bg-white hover:text-indigo-600"
               to="learnmore"
@@ -28,5 +31,5 @@ function HeroSection() {
     </>
   );
 }
-  
+
 export default HeroSection;

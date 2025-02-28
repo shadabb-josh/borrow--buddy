@@ -48,9 +48,11 @@ function Navbar({ inContactOrAboutOrLearn }: NavbarProps) {
             </>
           )}
         </nav>
-        <button className="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-white-600">
-          Get Started
-        </button>
+        <NavLink to="/login">
+          <button className="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-white-600">
+            Get Started
+          </button>
+        </NavLink>
       </header>
     </>
   );
