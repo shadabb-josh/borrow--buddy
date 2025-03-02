@@ -19,7 +19,7 @@ function LoanDetails() {
   };
 
   return (
-    <div className="flex items-center justify-center">
+    <div className="flex items-center justify-center mt-10">
       <div className="max-w-lg w-full bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Header Banner */}
         <div className="bg-black text-white p-6">
@@ -98,13 +98,14 @@ function LoanDetails() {
                 </button>
               </NavLink>
 
-            
-              <button
-                className="flex-1 px-4 py-3 border bg-black text-white font-medium 
-            rounded-lg hover:bg-gray-900 transition shadow-md"
-              >
-                <NavLink to="/user-dashboard/lend/loan-details/pin"> Invest</NavLink>
-              </button>
+              <NavLink to="/user-dashboard/lend/loan-details/pin">
+                <button
+                  className="flex-1 px-4 py-3 border bg-black text-white font-medium 
+               rounded-lg hover:bg-gray-900 transition-shadow shadow-md w-96"
+                >
+                  Invest
+                </button>
+              </NavLink>
             </div>
           </div>
         </div>
