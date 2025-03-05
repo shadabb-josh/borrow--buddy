@@ -11,11 +11,12 @@ import AccountInfo from "../components/user/AccountInfo";
 import LoansBorrowed from "../components/user/LoansBorrowed";
 import LoansLent from "../components/user/LoansLent";
 import Transactions from "../components/user/Transactions";
-import ChangePassoword from "../components/user/ChangePassoword";
+import ChangePassword from "../components/user/ChangePassoword";
 import LoanList from "../components/user/LoanList";
 import LoanDetails from "../components/user/LoanDetails";
 import LoanApplicationForm from "../components/user/LoanApplicationForm";
 import PinToSuccessForm from "../components/user/PinToSuccess";
+import AuthGuard from "../components/HOC/AuthGuard";
 
 const router = createBrowserRouter([
   {
@@ -48,48 +49,34 @@ const router = createBrowserRouter([
   },
   {
     path: "user-dashboard",
-    element: <UserDashboard />,
+    element: <AuthGuard />,
     children: [
       {
         path: "",
-        element: <AccountInfo />,
+        element: <UserDashboard />,
+        children: [
+          { path: "", element: <AccountInfo /> },
+          { path: "loans-borrowed", element: <LoansBorrowed /> },
+          { path: "loans-lent", element: <LoansLent /> },
+          { path: "transactions", element: <Transactions /> },
+          { path: "change-password", element: <ChangePassword /> },
+          { path: "lend", element: <LoanList inMyLoanApplication={false} /> },
+          { path: "lend/loan-details/:id", element: <LoanDetails /> },
+          {
+            path: "lend/loan-details/pin",
+            element: <PinToSuccessForm repayment={false} />,
+          },
+          {
+            path: "loans-borrowed/:id/pin",
+            element: <PinToSuccessForm repayment={true} />,
+          },
+          { path: "borrow", element: <LoanApplicationForm /> },
+          {
+            path: "my-loan-applications",
+            element: <LoanList inMyLoanApplication={true} />,
+          },
+        ],
       },
-      {
-        path: "loans-borrowed",
-        element: <LoansBorrowed />,
-      },
-      {
-        path: "loans-lent",
-        element: <LoansLent />,
-      },
-      {
-        path: "transactions",
-        element: <Transactions />,
-      },
-      {
-        path: "change-password",
-        element: <ChangePassoword />,
-      },
-      {
-        path: "lend",
-        element: <LoanList inMyLoanAppplication={false} />,
-      },
-      {
-        path: "lend/loan-details",
-        element: <LoanDetails />,
-      },
-      {
-        path: "lend/loan-details/pin",
-        element: <PinToSuccessForm />,
-      },
-      {
-        path: "borrow",
-        element: <LoanApplicationForm />,
-      },
-      {
-        path: "my-loan-applications",
-        element: <LoanList inMyLoanAppplication={true} />,
-      }
     ],
   },
 ]);
