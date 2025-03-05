@@ -1,22 +1,36 @@
-import { NavLink } from "react-router-dom";
+import { RootState } from "../../app/store";
+import { NavLink, useParams } from "react-router-dom";
+import { useGetLoanByIdQuery } from "../../features/loan/loanApi";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { setLoan } from "../../features/loan/loanSlice";
 
 function LoanDetails() {
-  // Dummy loan data
-  const loan = {
-    id: 1023,
-    borrowerName: "Rahul Sharma",
-    lenderName: "Amit Verma",
-    amount: 75000,
-    interest: 12,
-    purpose: "Business Expansion",
-    repayment_till: "31st Dec 2025",
-    expected_return: 84000,
-    platform_fee: 2000,
-    total_return: 82000,
-    status: "Active",
-    progress: 65, // Progress percentage
-    remaining_days: 120, // Remaining days
-  };
+  const { id } = useParams();
+  const token = localStorage.getItem("token");
+
+  const { data, isLoading, isError } = useGetLoanByIdQuery({ id, token });
+  const dispatch = useDispatch();
+
+  const loan = useSelector((state: RootState) => state.loan.loan);
+
+  useEffect(() => {
+    if (data) {
+      dispatch(setLoan(data));
+    }
+  }, [data]);
+
+  if (isLoading) {
+    return <p className="text-center mt-10">Loading loan details...</p>;
+  }
+
+  if (isError || !loan) {
+    return (
+      <p className="text-center mt-10 text-red-500">
+        Error fetching loan details.
+      </p>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center mt-10">
@@ -52,19 +66,19 @@ function LoanDetails() {
             <div className="bg-purple-50 p-4 rounded-lg text-center">
               <p className="text-xs text-gray-500">Expected Return</p>
               <p className="text-lg font-bold text-gray-600">
-                ₹{loan.expected_return.toLocaleString()}
+                ₹{loan.expected_return}
               </p>
             </div>
             <div className="bg-purple-50 p-4 rounded-lg text-center">
               <p className="text-xs text-gray-500">Platform Fee</p>
               <p className="text-lg font-bold text-red-700">
-                ₹{loan.platform_fee.toLocaleString()}
+                ₹{loan.platform_fee}
               </p>
             </div>
             <div className="bg-purple-50 p-4 rounded-lg text-center">
               <p className="text-xs text-gray-500">Total Return</p>
               <p className="text-lg font-bold text-green-700">
-                ₹{loan.total_return.toLocaleString()}
+                ₹{loan.total_return}
               </p>
             </div>
           </div>
@@ -75,8 +89,8 @@ function LoanDetails() {
               Loan Information
             </h2>
             {[
-              { label: "Borrower", value: loan.borrowerName },
-              { label: "Lender", value: loan.lenderName },
+              { label: "Purpose", value: loan.purpose },
+              { label: "Interest", value: `${loan.interest}%` },
               { label: "Repayment Deadline", value: loan.repayment_till },
             ].map((item, index) => (
               <div key={index} className="flex justify-between border-b pb-2">

@@ -1,186 +1,121 @@
-import { ArrowDownRight, ArrowUpRight, DollarSign, Wallet } from "lucide-react"
+import { RootState } from "../../app/store";
+import { ArrowDownRight, ArrowUpRight, DollarSign, Wallet } from "lucide-react";
+import { useSelector } from "react-redux";
 
-
-interface LoanStatistics {
-    borrowed: number;
-    borrowedTotal: number;
-    borrowedGrowth: number;
-    lent: number;
-    lentTotal: number;
-    lentGrowth: number;
-  }
-  
-  interface Transaction {
-    id: string;
-    date: string;
-    type: "borrowed" | "lent" | "repaid" | "received";
-    amount: number;
-    counterparty: string;
-    status: "completed" | "pending" | "failed";
-  }
-  
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
-  
-  const getTransactionStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "bg-green-100 text-green-800";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "failed":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
 
 function LoansLent() {
-    const loanStats: LoanStatistics = {
-        borrowed: 2,
-        borrowedTotal: 125000,
-        borrowedGrowth: 8, // 8% increase
-        lent: 2,
-        lentTotal: 90000,
-        lentGrowth: 12, // 12% increase
-      };
-    
-      const transactions: Transaction[] = [
-        {
-          id: "tx001",
-          date: "2024-05-15",
-          type: "borrowed",
-          amount: 75000,
-          counterparty: "Rajesh Mehta",
-          status: "completed",
-        },
-        {
-          id: "tx002",
-          date: "2024-05-02",
-          type: "borrowed",
-          amount: 50000,
-          counterparty: "Ankit Kumar",
-          status: "completed",
-        },
-        {
-          id: "tx003",
-          date: "2024-04-20",
-          type: "lent",
-          amount: 40000,
-          counterparty: "Priya Sharma",
-          status: "completed",
-        },
-        {
-          id: "tx004",
-          date: "2024-04-10",
-          type: "repaid",
-          amount: 25000,
-          counterparty: "Rajesh Mehta",
-          status: "completed",
-        },
-        {
-          id: "tx005",
-          date: "2024-03-28",
-          type: "lent",
-          amount: 50000,
-          counterparty: "Vikram Singh",
-          status: "completed",
-        },
-        {
-          id: "tx006",
-          date: "2024-03-15",
-          type: "received",
-          amount: 15000,
-          counterparty: "Priya Sharma",
-          status: "completed",
-        },
-        {
-          id: "tx007",
-          date: "2024-05-18",
-          type: "repaid",
-          amount: 15000,
-          counterparty: "Ankit Kumar",
-          status: "pending",
-        },
-        {
-          id: "tx008",
-          date: "2024-05-10",
-          type: "received",
-          amount: 10000,
-          counterparty: "Vikram Singh",
-          status: "pending",
-        },
-      ];
-  return (
-    <div className="bg-white p-4 md:p-8 rounded-lg shadow-md hover:shadow-lg transition">
-    <h3 className="text-lg md:text-xl text-black mb-3 md:mb-4 flex items-center gap-2">
-      <Wallet size={22} /> Loans Lent
-    </h3>
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 mb-4 md:mb-6">
-      <div>
-        <p className="text-base md:text-lg text-gray-700 flex items-center gap-2">
-          <DollarSign size={18} /> Total Lent: ₹
-          {loanStats.lentTotal.toLocaleString()}
-        </p>
-        <p
-          className={`text-xs md:text-sm mt-1 flex items-center gap-1 ${
-            loanStats.lentGrowth >= 0
-              ? "text-green-600"
-              : "text-red-600"
-          }`}
-        >
-          {loanStats.lentGrowth >= 0 ? (
-            <ArrowUpRight size={16} />
-          ) : (
-            <ArrowDownRight size={16} />
-          )}
-          {loanStats.lentGrowth >= 0
-            ? `+${loanStats.lentGrowth}% Growth`
-            : `${loanStats.lentGrowth}% Decline`}
-        </p>
-      </div>
-      <div className="bg-black text-white px-3 md:px-4 py-1 md:py-2 rounded-lg text-sm">
-        Active Loans: {loanStats.lent}
-      </div>
-    </div>
+  const loans = useSelector((state: RootState) => state.loan);
 
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-      {transactions
-        .filter((tx) => tx.type === "lent")
-        .map((tx) => (
-          <div
-            key={tx.id}
-            className="border p-3 md:p-4 rounded-lg hover:shadow-md transition"
-          >
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs md:text-sm text-gray-500">
-                {formatDate(tx.date)}
-              </span>
-              <span
-                className={`text-xs px-2 py-0.5 md:py-1 rounded-full ${getTransactionStatusColor(
-                  tx.status
-                )}`}
-              >
-                {tx.status}
-              </span>
-            </div>
-            <p className="text-base md:text-lg font-medium">
-              ₹{tx.amount.toLocaleString()}
+  const lendedTotalAmount = loans.lendedLoans
+    .filter((loan) => loan.status !== "repaid" && loan.status !== "pending")
+    .reduce((total, loan) => total + Number(loan.amount), 0);
+
+  const lendedTotalExpectedReturn = loans.lendedLoans.reduce(
+    (total, loan) => total + Number(loan.expected_return),
+    0
+  );
+
+  const lendedGrowth = lendedTotalAmount
+    ? (lendedTotalExpectedReturn / lendedTotalAmount) * 100
+    : 0;
+
+  return (
+    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition h-full flex flex-col">
+      <div className="p-4 md:p-8 pb-0">
+        <h3 className="text-lg md:text-xl text-black mb-3 md:mb-4 flex items-center gap-2">
+          <Wallet size={22} /> Loans Lent
+        </h3>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 mb-4 md:mb-6">
+          <div>
+            <p className="text-base md:text-lg text-gray-700 flex items-center gap-2">
+              <DollarSign size={18} /> Total Lent: ₹{lendedTotalAmount}
             </p>
-            <p className="text-xs md:text-sm text-gray-600">
-              To: {tx.counterparty}
+            <p
+              className={`text-xs md:text-sm mt-1 flex items-center gap-1 ${
+                lendedGrowth >= 0 ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              {lendedGrowth >= 0 ? (
+                <ArrowUpRight size={16} />
+              ) : (
+                <ArrowDownRight size={16} />
+              )}
+              {lendedGrowth >= 0
+                ? `+${lendedGrowth.toFixed(2)}% Growth`
+                : `${lendedGrowth.toFixed(2)}% Decline`}
             </p>
           </div>
-        ))}
+          <div className="bg-black text-white px-3 md:px-4 py-1 md:py-2 rounded-lg text-sm">
+            Active Loans:{" "}
+            {
+              loans.lendedLoans.filter((loan) => loan.status !== "repaid")
+                .length
+            }
+          </div>
+        </div>
+      </div>
+
+      {/* Scrollable container */}
+      <div className="overflow-y-auto max-h-[calc(80vh-150px)] flex-grow md:px-8 pb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+          {loans.lendedLoans.map((loan) => (
+            <div
+              key={loan.id}
+              className="border p-3 md:p-4 rounded-lg hover:shadow-md transition"
+            >
+              {/* Header Section */}
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs md:text-sm text-gray-500">
+                  Repayment Till: {formatDate(loan.repayment_till)}
+                </span>
+              </div>
+
+              {/* Amount Details */}
+              <p className="text-base md:text-lg font-medium">
+                Loan Amount: ₹{Number(loan.amount).toLocaleString()}
+              </p>
+
+              {/* Loan Purpose */}
+              <p className="text-xs md:text-sm text-gray-600">
+                Purpose: {loan.purpose}
+              </p>
+
+              {/* Interest Rate */}
+              <p className="text-xs md:text-sm text-gray-600">
+                Interest: {loan.interest}%
+              </p>
+
+              {/* Expected & Total Return */}
+              <p className="text-xs md:text-sm text-gray-600">
+                Total Interest: ₹{Number(loan.expected_return).toLocaleString()}
+              </p>
+              <p className="text-xs md:text-sm text-gray-600">
+                Platform fee: ₹{Number(loan.platform_fee).toLocaleString()}
+              </p>
+              <p className="text-xs md:text-sm text-gray-600">
+                Amount Receivable (after platform fee): ₹{" "}
+                {loan.total_return.toFixed(2)}
+              </p>
+
+              {loan.status === "repaid" && (
+                <p className="mt-2 text-sm font-semibold text-green-600 bg-green-100 px-3 py-1 rounded-lg inline-block">
+                  Loan Repaid
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
-  </div>
-  )
+  );
 }
 
-export default LoansLent
+export default LoansLent;

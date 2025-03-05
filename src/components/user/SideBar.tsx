@@ -6,7 +6,7 @@ import {
   User,
   Wallet,
 } from "lucide-react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 interface TabItem {
   id: string;
@@ -16,7 +16,12 @@ interface TabItem {
 }
 
 function SideBar() {
-  const location = useLocation();
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    localStorage.removeItem("userId");
+    localStorage.removeItem("token");
+    navigate("/", { replace: true });
+  };
 
   const tabs: TabItem[] = [
     {
@@ -48,7 +53,7 @@ function SideBar() {
       id: "borrow",
       label: "Borrow",
       icon: <CreditCard size={18} />,
-      path: "/user-dashboard/borrow"
+      path: "/user-dashboard/borrow",
     },
 
     {
@@ -77,7 +82,7 @@ function SideBar() {
     <aside className="w-full md:w-1/4 bg-white shadow-xl p-4 md:p-6 flex flex-col justify-between rounded-t-lg md:rounded-t-none md:rounded-r-lg">
       <div>
         <h2 className="text-xl md:text-2xl text-black mb-4 md:mb-6 text-center flex items-center justify-center gap-2">
-          Shadabb's Dashboard
+          Dashboard
         </h2>
         <div className="flex md:block overflow-x-auto md:overflow-visible pb-2 md:pb-0">
           {tabs.map((tab) => (
@@ -98,11 +103,13 @@ function SideBar() {
           ))}
         </div>
       </div>
-      <NavLink to="/logout">
-        <button className="hidden md:flex mt-6 w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition items-center justify-center gap-2">
-          <LogOut size={18} /> Logout
-        </button>
-      </NavLink>
+
+      <button
+        onClick={handleLogout}
+        className="hidden md:flex mt-6 w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition items-center justify-center gap-2"
+      >
+        <LogOut size={18} /> Logout
+      </button>
     </aside>
   );
 }
