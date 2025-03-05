@@ -62,13 +62,6 @@ function ChangePassword() {
       <h3 className="text-lg md:text-xl text-black mb-4 flex items-center gap-2">
         <LockKeyhole size={22} /> Change Password
       </h3>
-
-      {isSuccess && (
-        <p className="text-green-600 text-sm mb-2">
-          Password updated successfully!
-        </p>
-      )}
-
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Current Password */}
         <div className="relative">
