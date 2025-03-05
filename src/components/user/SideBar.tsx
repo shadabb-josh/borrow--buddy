@@ -6,7 +6,7 @@ import {
   User,
   Wallet,
 } from "lucide-react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 
 interface TabItem {
   id: string;
@@ -17,6 +17,8 @@ interface TabItem {
 
 function SideBar() {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const handleLogout = () => {
     localStorage.removeItem("userId");
     localStorage.removeItem("token");
@@ -42,7 +44,6 @@ function SideBar() {
       icon: <Wallet size={18} />,
       path: "/user-dashboard/loans-lent",
     },
-
     {
       id: "lend",
       label: "Lend",
@@ -55,7 +56,6 @@ function SideBar() {
       icon: <CreditCard size={18} />,
       path: "/user-dashboard/borrow",
     },
-
     {
       id: "transactions",
       label: "Transactions",
@@ -74,8 +74,6 @@ function SideBar() {
       icon: <LockKeyhole size={18} />,
       path: "/user-dashboard/change-password",
     },
-
-    // { id: "loanDetails", label: "Loan Details", icon: <CreditCard size={18} />, path: "/user-dashboard/lend/loan-details" },
   ];
 
   return (
@@ -85,22 +83,27 @@ function SideBar() {
           Dashboard
         </h2>
         <div className="flex md:block overflow-x-auto md:overflow-visible pb-2 md:pb-0">
-          {tabs.map((tab) => (
-            <NavLink
-              key={tab.id}
-              to={tab.path}
-              className={`whitespace-nowrap md:whitespace-normal md:block w-auto md:w-full text-left px-3 md:px-6 py-2 md:py-3 rounded-lg text-sm md:text-base transition flex items-center gap-2 md:gap-3 mr-2 md:mr-0 md:mb-2 ${
-                location.pathname === tab.path
-                  ? "bg-black text-white shadow-lg"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              <span className="flex items-center gap-2 md:gap-3">
-                {tab.icon}
-                <span>{tab.label}</span>
-              </span>
-            </NavLink>
-          ))}
+          {tabs.map((tab) => {
+            const isActive =
+              tab.path === "/user-dashboard"
+                ? location.pathname === "/user-dashboard"
+                : location.pathname.startsWith(tab.path);
+
+            return (
+              <NavLink
+                key={tab.id}
+                to={tab.path}
+                className={`whitespace-nowrap md:whitespace-normal md:block w-auto md:w-full text-left px-3 md:px-6 py-2 md:py-3 rounded-lg text-sm md:text-base transition flex items-center gap-2 md:gap-3 mr-2 md:mr-0 md:mb-2 ${
+                  isActive ? "bg-black text-white shadow-lg" : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <span className="flex items-center gap-2 md:gap-3">
+                  {tab.icon}
+                  <span>{tab.label}</span>
+                </span>
+              </NavLink>
+            );
+          })}
         </div>
       </div>
 
