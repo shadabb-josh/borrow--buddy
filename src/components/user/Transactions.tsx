@@ -1,368 +1,275 @@
 import {
-  ArrowDown,
-  ArrowDownRight,
-  ArrowUp,
-  ArrowUpRight,
-  Download,
   Filter,
   History,
   Search,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useGetAllTransactionQuery } from "../../features/user/userApi";
+import { useDispatch, useSelector } from "react-redux";
+import { setTransactions } from "../../features/user/userSlice";
+import { RootState } from "../../app/store";
 
 interface Transaction {
-  id: string;
-  date: string;
-  type: "borrowed" | "lent" | "repaid" | "received";
+  id: number;
+  user_id: number;
   amount: number;
-  counterparty: string;
-  status: "completed" | "pending" | "failed";
+  transaction_type: "credit" | "debit";
+  created_at: string;
 }
 
-const transactions: Transaction[] = [
-  {
-    id: "tx001",
-    date: "2024-05-15",
-    type: "borrowed",
-    amount: 75000,
-    counterparty: "Rajesh Mehta",
-    status: "completed",
-  },
-  {
-    id: "tx002",
-    date: "2024-05-02",
-    type: "borrowed",
-    amount: 50000,
-    counterparty: "Ankit Kumar",
-    status: "completed",
-  },
-  {
-    id: "tx003",
-    date: "2024-04-20",
-    type: "lent",
-    amount: 40000,
-    counterparty: "Priya Sharma",
-    status: "completed",
-  },
-  {
-    id: "tx004",
-    date: "2024-04-10",
-    type: "repaid",
-    amount: 25000,
-    counterparty: "Rajesh Mehta",
-    status: "completed",
-  },
-  {
-    id: "tx005",
-    date: "2024-03-28",
-    type: "lent",
-    amount: 50000,
-    counterparty: "Vikram Singh",
-    status: "completed",
-  },
-  {
-    id: "tx006",
-    date: "2024-03-15",
-    type: "received",
-    amount: 15000,
-    counterparty: "Priya Sharma",
-    status: "completed",
-  },
-  {
-    id: "tx007",
-    date: "2024-05-18",
-    type: "repaid",
-    amount: 15000,
-    counterparty: "Ankit Kumar",
-    status: "pending",
-  },
-  {
-    id: "tx008",
-    date: "2024-05-10",
-    type: "received",
-    amount: 10000,
-    counterparty: "Vikram Singh",
-    status: "pending",
-  },
-];
+const Transactions = () => {
+  const [filterType, setFilterType] = useState<
+    "all" | Transaction["transaction_type"]
+  >("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState({ start: "", end: "" });
+  const [currentPage, setCurrentPage] = useState(1);
+  const transactionsPerPage = 7;
 
-function Transactions() {
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [filterType, setFilterType] = useState<string>("all");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const [sortField, setSortField] = useState<string>("date");
+  const dispatch = useDispatch();
+  const transactions = useSelector(
+    (state: RootState) => state.user.transactions
+  ) as Transaction[] | undefined;
 
-  const handleSort = (field: string) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("desc");
+  const userId = Number(localStorage.getItem("userId"));
+  const token = localStorage.getItem("token") || "";
+  const { data, isLoading, error } = useGetAllTransactionQuery({
+    id: userId,
+    token,
+  });
+
+  useEffect(() => {
+    if (data) {
+      dispatch(setTransactions(data));
     }
-  };
+  }, [data, dispatch]);
 
-  const getTransactionIcon = (type: string) => {
-    switch (type) {
-      case "borrowed":
-        return <ArrowDownRight className="text-blue-600" size={18} />;
-      case "lent":
-        return <ArrowUpRight className="text-purple-600" size={18} />;
-      case "repaid":
-        return <ArrowUpRight className="text-red-600" size={18} />;
-      case "received":
-        return <ArrowDownRight className="text-green-600" size={18} />;
-      default:
-        return <History size={18} />;
-    }
-  };
+  const filteredTransactions = (transactions ?? []).filter((tx) => {
+    const matchesType =
+      filterType !== "all" ? tx.transaction_type === filterType : true;
+    const matchesSearch = searchQuery
+      ? tx.id.toString().includes(searchQuery) ||
+        tx.amount.toString().includes(searchQuery)
+      : true;
+    const txDate = new Date(tx.created_at);
+    const matchesDateRange =
+      dateRange.start && dateRange.end
+        ? txDate >= new Date(dateRange.start) &&
+          txDate <= new Date(dateRange.end)
+        : true;
 
-  const getTransactionStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "bg-green-100 text-green-800";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "failed":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+    return matchesType && matchesSearch && matchesDateRange;
+  });
 
-  const filteredTransactions = transactions
-    .filter((tx) => {
-      if (filterType !== "all" && tx.type !== filterType) return false;
+  const totalPages = Math.ceil(
+    filteredTransactions.length / transactionsPerPage
+  );
+  const paginatedTransactions = filteredTransactions.slice(
+    (currentPage - 1) * transactionsPerPage,
+    currentPage * transactionsPerPage
+  );
 
-      const searchLower = searchQuery.toLowerCase();
-      return (
-        tx.id.toLowerCase().includes(searchLower) ||
-        tx.counterparty.toLowerCase().includes(searchLower) ||
-        tx.amount.toString().includes(searchLower) ||
-        tx.status.toLowerCase().includes(searchLower)
-      );
-    })
-    .sort((a, b) => {
-      if (sortField === "date") {
-        return sortDirection === "asc"
-          ? new Date(a.date).getTime() - new Date(b.date).getTime()
-          : new Date(b.date).getTime() - new Date(a.date).getTime();
-      } else if (sortField === "amount") {
-        return sortDirection === "asc"
-          ? a.amount - b.amount
-          : b.amount - a.amount;
-      } else if (sortField === "counterparty") {
-        return sortDirection === "asc"
-          ? a.counterparty.localeCompare(b.counterparty)
-          : b.counterparty.localeCompare(a.counterparty);
-      }
-      return 0;
-    });
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterType, searchQuery, dateRange]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-IN", {
+    return date.toLocaleString("en-IN", {
       day: "2-digit",
       month: "short",
       year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
     });
   };
 
+  const getTransactionStyles = (type: Transaction["transaction_type"]) => {
+    return type === "credit"
+      ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+      : "bg-rose-100 text-rose-700 border border-rose-200";
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage > 0 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
   return (
-    <div className="bg-white p-4 md:p-8 rounded-lg shadow-md hover:shadow-lg transition">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4 md:mb-6">
-        <h3 className="text-lg md:text-xl text-black flex items-center gap-2">
-          <History size={22} /> Transaction History
-        </h3>
-      </div>
-
-      {/* Search and Filter Controls */}
-      <div className="flex flex-col sm:flex-row gap-3 sm:space-x-4 mb-4 md:mb-6">
-        <div className="relative flex-grow">
-          <span className="absolute left-3 top-2.5 text-gray-500">
-            <Search size={16} />
-          </span>
-          <input
-            type="text"
-            placeholder="Search transactions..."
-            className="w-full pl-10 px-4 py-2 border rounded-lg text-sm"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-
-        <div className="relative sm:w-1/3 md:w-1/4">
-          <span className="absolute left-3 top-2.5 text-gray-500">
-            <Filter size={16} />
-          </span>
-          <select
-            className="w-full pl-10 px-4 py-2 border rounded-lg appearance-none bg-white pr-8 text-sm"
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-          >
-            <option value="all">All Types</option>
-            <option value="borrowed">Borrowed</option>
-            <option value="lent">Lent</option>
-            <option value="repaid">Repaid</option>
-            <option value="received">Received</option>
-          </select>
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+      <div className="p-6 border-b border-gray-200">
+        <div className="flex justify-between items-center">
+          <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-3">
+            <History size={24} className="text-blue-600" />
+            <span>Transaction History</span>
+          </h3>
         </div>
       </div>
 
-      {/* Transactions Table - Responsive approach */}
-      <div className="overflow-x-auto -mx-4 md:mx-0">
-        <div className="min-w-full px-4 md:px-0">
-          {/* Desktop View */}
-          <table className="min-w-full border-collapse hidden sm:table">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="px-3 md:px-4 py-2 text-left text-gray-600 text-sm">
-                  <button
-                    className="flex items-center gap-1"
-                    onClick={() => handleSort("date")}
-                  >
-                    Date
-                    {sortField === "date" &&
-                      (sortDirection === "asc" ? (
-                        <ArrowUp size={14} />
-                      ) : (
-                        <ArrowDown size={14} />
-                      ))}
-                  </button>
-                </th>
-                <th className="px-3 md:px-4 py-2 text-left text-gray-600 text-sm">
-                  Type
-                </th>
-                <th className="px-3 md:px-4 py-2 text-left text-gray-600 text-sm">
-                  <button
-                    className="flex items-center gap-1"
-                    onClick={() => handleSort("amount")}
-                  >
-                    Amount
-                    {sortField === "amount" &&
-                      (sortDirection === "asc" ? (
-                        <ArrowUp size={14} />
-                      ) : (
-                        <ArrowDown size={14} />
-                      ))}
-                  </button>
-                </th>
-                <th className="px-3 md:px-4 py-2 text-left text-gray-600 text-sm">
-                  <button
-                    className="flex items-center gap-1"
-                    onClick={() => handleSort("counterparty")}
-                  >
-                    Counterparty
-                    {sortField === "counterparty" &&
-                      (sortDirection === "asc" ? (
-                        <ArrowUp size={14} />
-                      ) : (
-                        <ArrowDown size={14} />
-                      ))}
-                  </button>
-                </th>
-                <th className="px-3 md:px-4 py-2 text-left text-gray-600 text-sm">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTransactions.map((tx) => (
-                <tr
-                  key={tx.id}
-                  className="border-b hover:bg-gray-50 transition-colors"
-                >
-                  <td className="px-3 md:px-4 py-2 md:py-3 text-gray-800 text-sm">
-                    {formatDate(tx.date)}
-                  </td>
-                  <td className="px-3 md:px-4 py-2 md:py-3 text-sm">
-                    <div className="flex items-center gap-2">
-                      {getTransactionIcon(tx.type)}
-                      <span className="capitalize">{tx.type}</span>
-                    </div>
-                  </td>
-                  <td className="px-3 md:px-4 py-2 md:py-3 font-medium text-sm">
-                    ₹{tx.amount.toLocaleString()}
-                  </td>
-                  <td className="px-3 md:px-4 py-2 md:py-3 text-gray-800 text-sm">
-                    {tx.counterparty}
-                  </td>
-                  <td className="px-3 md:px-4 py-2 md:py-3">
-                    <span
-                      className={`text-xs px-2 py-0.5 md:py-1 rounded-full ${getTransactionStatusColor(
-                        tx.status
-                      )}`}
-                    >
-                      {tx.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="p-6">
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          {/* Type filter */}
+          <div className="relative w-full md:w-1/3 lg:w-1/4">
+            <Filter className="absolute left-3 top-3 text-gray-500" size={18} />
+            <select
+              className="w-full pl-10 px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-sm focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+              value={filterType}
+              onChange={(e) =>
+                setFilterType(
+                  e.target.value as "all" | Transaction["transaction_type"]
+                )
+              }
+            >
+              <option value="all">All Types</option>
+              <option value="credit">Credit</option>
+              <option value="debit">Debit</option>
+            </select>
+          </div>
 
-          {/* Mobile View - Cards */}
-          <div className="sm:hidden space-y-3">
-            {filteredTransactions.map((tx) => (
-              <div
-                key={tx.id}
-                className="border rounded-lg p-3 hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs text-gray-500">
-                    {formatDate(tx.date)}
-                  </span>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full ${getTransactionStatusColor(
-                      tx.status
-                    )}`}
-                  >
-                    {tx.status}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center mb-1">
-                  <div className="flex items-center gap-1 text-sm">
-                    {getTransactionIcon(tx.type)}
-                    <span className="capitalize">{tx.type}</span>
-                  </div>
-                  <span className="font-medium text-sm">
-                    ₹{tx.amount.toLocaleString()}
-                  </span>
-                </div>
-                <div className="text-xs text-gray-600">
-                  {tx.type === "lent" ? "To: " : "From: "}
-                  {tx.counterparty}
-                </div>
-              </div>
-            ))}
+          {/* Search */}
+          <div className="relative w-full md:w-1/3">
+            <Search className="absolute left-3 top-3 text-gray-500" size={18} />
+            <input
+              type="text"
+              placeholder="Search transactions"
+              className="w-full pl-10 px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          {/* Date Range */}
+          <div className="flex w-full md:w-1/3 gap-2">
+            <div className="relative w-1/2">
+              <Calendar
+                className="absolute left-3 top-3 text-gray-500"
+                size={18}
+              />
+              <input
+                type="date"
+                className="w-full pl-10 px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                value={dateRange.start}
+                onChange={(e) =>
+                  setDateRange((prev) => ({ ...prev, start: e.target.value }))
+                }
+              />
+            </div>
+            <div className="relative w-1/2">
+              <Calendar
+                className="absolute left-3 top-3 text-gray-500"
+                size={18}
+              />
+              <input
+                type="date"
+                className="w-full pl-10 px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                value={dateRange.end}
+                onChange={(e) =>
+                  setDateRange((prev) => ({ ...prev, end: e.target.value }))
+                }
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      {filteredTransactions.length === 0 && (
-        <div className="text-center py-6 md:py-8 text-gray-500">
-          No transactions match your search criteria
-        </div>
-      )}
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+          </div>
+        ) : error ? (
+          <div className="bg-rose-50 text-rose-600 p-4 rounded-lg text-center">
+            Failed to load transactions. Please try again later.
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto rounded-lg border border-gray-200">
+              <table className="min-w-full">
+                <thead className="bg-gray-100 border-b">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      ID
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      Type
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      Amount
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {paginatedTransactions.length > 0 ? (
+                    paginatedTransactions.map((tx) => (
+                      <tr
+                        key={tx.id}
+                        className="hover:bg-gray-50 transition-colors duration-200"
+                      >
+                        <td className="px-4 py-3 text-sm text-gray-500">
+                          #{tx.id}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-800">
+                          {formatDate(tx.created_at)}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${getTransactionStyles(
+                              tx.transaction_type
+                            )}`}
+                          >
+                            {tx.transaction_type}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 font-medium text-sm">
+                          ₹{tx.amount.toLocaleString()}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="text-center py-10 text-gray-500"
+                      >
+                        No transactions found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-      <div className="mt-4 text-xs md:text-sm text-gray-500 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
-        <div>
-          Showing {filteredTransactions.length} of {transactions.length}{" "}
-          transactions
-        </div>
-        <div className="flex space-x-2">
-          <button className="px-2 md:px-3 py-1 border rounded hover:bg-gray-100 transition text-sm">
-            Previous
-          </button>
-          <button className="px-2 md:px-3 py-1 border rounded bg-black text-white hover:bg-gray-800 transition text-sm">
-            1
-          </button>
-          <button className="px-2 md:px-3 py-1 border rounded hover:bg-gray-100 transition text-sm">
-            Next
-          </button>
-        </div>
+            {/* Pagination */}
+            <div className="flex justify-center items-center mt-6 space-x-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <div className="text-sm text-gray-600">
+                Page {currentPage} of {totalPages}
+              </div>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
-}
+};
 
 export default Transactions;
