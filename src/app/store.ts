@@ -4,19 +4,26 @@ import { userApi } from "../features/user/userApi";
 import { userReducer } from "../features/user/userSlice";
 import { loanReducer } from "../features/loan/loanSlice";
 import { loanApi } from "../features/loan/loanApi";
-// import { authReducer } from "../features/auth/authSlice";    
+import { adminApi } from "../features/admin/adminApi";
+// import { authReducer } from "../features/auth/authSlice";
 
 export const store = configureStore({
   reducer: {
     [authApi.reducerPath]: authApi.reducer,
     [userApi.reducerPath]: userApi.reducer,
     [loanApi.reducerPath]: loanApi.reducer,
+    [adminApi.reducerPath]: adminApi.reducer,
     user: userReducer,
-    loan: loanReducer
+    loan: loanReducer,
     // auth: authReducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(authApi.middleware, userApi.middleware, loanApi.middleware),
+    getDefaultMiddleware().concat(
+      authApi.middleware,
+      userApi.middleware,
+      loanApi.middleware,
+      adminApi.middleware
+    ),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
