@@ -17,6 +17,8 @@ import LoanDetails from "../components/user/LoanDetails";
 import LoanApplicationForm from "../components/user/LoanApplicationForm";
 import PinToSuccessForm from "../components/user/PinToSuccess";
 import AuthGuard from "../components/HOC/AuthGuard";
+import AdminDashboard from "../components/admin/AdminDashboard";
+import AdminLogin from "../components/admin/AdminLogin";
 
 const router = createBrowserRouter([
   {
@@ -46,6 +48,20 @@ const router = createBrowserRouter([
   {
     path: "user-details",
     element: <UserDetails />,
+  },
+  {
+    path: "admin-login",
+    element: <AdminLogin />,
+  },
+  {
+    path: "admin-dashboard",
+    element: <AuthGuard />,
+    children: [
+      {
+        path: "",
+        element: <AdminDashboard />,
+      },
+    ],
   },
   {
     path: "user-dashboard",
