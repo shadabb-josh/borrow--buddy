@@ -19,8 +19,13 @@ import PinToSuccessForm from "../components/user/PinToSuccess";
 import AuthGuard from "../components/HOC/AuthGuard";
 import AdminDashboard from "../components/admin/AdminDashboard";
 import AdminLogin from "../components/admin/AdminLogin";
+import PageNotFound from "../pages/PageNotFound";
 
 const router = createBrowserRouter([
+  {
+    path: "*",
+    element: <PageNotFound />,
+  },
   {
     path: "/",
     element: <Home />,
