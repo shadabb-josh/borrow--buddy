@@ -76,8 +76,8 @@ function LoanApplicationForm() {
                 type="number"
                 {...register("amount", {
                   required: "Amount is required",
-                  min: 500,
-                  max: 50000,
+                  min: {value: 500, message: "Minimum amount is 500"},
+                  max: {value: 50000, message: "Maximum amount is 50000"}
                 })}
                 className="w-full p-2 border rounded-lg focus:ring-purple-500 focus:border-purple-500 text-sm"
                 placeholder="₹500 - ₹50,000"
